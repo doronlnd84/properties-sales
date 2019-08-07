@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 //@Slf4j
 public class Startup implements ApplicationListener<ContextRefreshedEvent>
 {
+
+
     private final PropertySaleRepository homeSaleRepository;
 
     public Startup(PropertySaleRepository homeSaleRepository) {
