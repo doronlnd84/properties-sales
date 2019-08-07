@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class Startup implements ApplicationListener<ContextRefreshedEvent>
 {
     private final PropertySaleRepository homeSaleRepository;
-
+//TEXT
     public Startup(PropertySaleRepository homeSaleRepository) {
         this.homeSaleRepository = homeSaleRepository;
     }
