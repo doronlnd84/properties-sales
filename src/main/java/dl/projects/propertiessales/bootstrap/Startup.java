@@ -24,11 +24,7 @@ public class Startup implements ApplicationListener<ContextRefreshedEvent>
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         try {
-         //   crawler = new Crawler();
-            Integer lastPage = crawler.GetLastPage("https://www.ad.co.il/nadlansale?view=table");
-            System.out.println(lastPage);
-            crawler.ExtractData(lastPage);
-
+            crawler.run("https://www.ad.co.il/nadlansale?view=table");
         }
         catch (IOException e) {
             e.printStackTrace();
