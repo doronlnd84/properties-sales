@@ -26,7 +26,6 @@ public class Crawler {
     public void run(String siteUrl) throws IOException {
        int lastPage = getLastPage(siteUrl);
         System.out.println(lastPage);
-
         extractData(lastPage);
     }
    private Integer getLastPage(String websiteUrl) throws IOException {
@@ -103,9 +102,9 @@ public class Crawler {
                 numOfRooms = Double.parseDouble(rooms);
             }
             String flags = row.attr("data-flags");
-            isMediation = flags.charAt(flags.length()-1) =='1';
+            isMediation = IsLastCharPositive(flags);
             Property prop = new Property(keyId,type,city,address,addressNum,desc,acquisitionDate,adDate,numOfRooms,sqrMeter,price,
-                    floor,isMediation) ;
+                    floor,isMediation);
             homeSaleRepository.save(prop);
 
         }
@@ -113,6 +112,10 @@ public class Crawler {
              System.out.println("failed on page - " + i + " "+ ex.getMessage());
         }
 
+    }
+
+    private boolean IsLastCharPositive(String flags) {
+        return flags.charAt(flags.length()-1) =='1';
     }
 
     private  boolean isNumeric(String strNum) {
