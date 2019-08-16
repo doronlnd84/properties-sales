@@ -10,6 +10,7 @@ public class Property {
 
     @Id
     private String keyId;
+
     private String  type;
     private String  city;
     private String  address;

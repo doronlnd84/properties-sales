@@ -6,7 +6,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.Collator;
@@ -14,9 +19,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-@Component
+@Service
 public class Crawler {
 
+   Logger logger = LoggerFactory.getLogger(Crawler.class);
     private final PropertySaleRepository homeSaleRepository;
 
     public Crawler(PropertySaleRepository homeSaleRepository) {
@@ -24,9 +30,13 @@ public class Crawler {
     }
 
     public void run(String siteUrl) throws IOException {
-       int lastPage = getLastPage(siteUrl);
+//        logger.info("START RUN!!!!");
+//        logger.warn("START RUN!!!!");
+//        logger.error("START RUN!!!!");
+        int lastPage = getLastPage(siteUrl);
         System.out.println(lastPage);
         extractData(lastPage);
+
     }
    private Integer getLastPage(String websiteUrl) throws IOException {
         Document doc =Jsoup.connect(websiteUrl).get();
@@ -76,24 +86,8 @@ public class Crawler {
 
             desc = row.attr("data-desc");
             acquisitionDate = LocalDate.now();
-            Document doc2 = Jsoup.connect("https://www.ad.co.il/ad/" + keyId).get();
-            Element dateDiv = doc2.select("div.dates.ta-center").first();
-            if (dateDiv != null && dateDiv.text().startsWith("תאריך יצירה")) {
-                String txt = dateDiv.text().substring(13, 23);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                adDate = LocalDate.parse(txt, formatter);
-
-            }
-            String flr = row.attr("data-floor").trim();
-            Collator collator = Collator.getInstance(new Locale("he"));
-           if (flr.contains("מתוך")) {
-               flr = flr.split(" ")[0].trim();
-           }
-            if (collator.equals(flr, "קרקע")) {
-                flr = "0";}
-           if(isNumeric(flr)) {
-                floor = Integer.parseInt(flr);
-            }
+            adDate = getAdDate(keyId);
+            floor = getFloor(row);
             String meter =  row.attr("data-areasize").trim();
             if(isNumeric(meter))
                 sqrMeter = Double.parseDouble(meter);
@@ -102,7 +96,7 @@ public class Crawler {
                 numOfRooms = Double.parseDouble(rooms);
             }
             String flags = row.attr("data-flags");
-            isMediation = IsLastCharPositive(flags);
+            isMediation = isLastCharPositive(flags);
             Property prop = new Property(keyId,type,city,address,addressNum,desc,acquisitionDate,adDate,numOfRooms,sqrMeter,price,
                     floor,isMediation);
             homeSaleRepository.save(prop);
@@ -114,11 +108,40 @@ public class Crawler {
 
     }
 
-    private boolean IsLastCharPositive(String flags) {
+    private LocalDate getAdDate(String keyId) throws IOException {
+        LocalDate adDate = null;
+        Document doc2 = Jsoup.connect("https://www.ad.co.il/ad/" + keyId).get();
+        Element dateDiv = doc2.select("div.dates.ta-center").first();
+        if (dateDiv != null && dateDiv.text().startsWith("תאריך יצירה")) {
+            String txt = dateDiv.text().substring(13, 23);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            adDate = LocalDate.parse(txt, formatter);
+        }
+        return adDate;
+    }
+
+    private int getFloor(Element row ) {
+        Integer floor = -1;
+        String flr = row.attr("data-floor").trim();
+        Collator collator = Collator.getInstance(new Locale("he"));
+        if (flr.contains("מתוך")) {
+            flr = flr.split(" ")[0].trim();
+        }
+        if (collator.equals(flr, "קרקע")) {
+            flr = "0";}
+        if(isNumeric(flr)) {
+             floor = Integer.parseInt(flr);
+         }
+        return floor;
+    }
+
+     boolean isLastCharPositive(String flags) {
+        if(isEmpty(flags))
+            throw new IllegalArgumentException("flags cannot be empty");
         return flags.charAt(flags.length()-1) =='1';
     }
 
-    private  boolean isNumeric(String strNum) {
+    public  boolean isNumeric(String strNum) {
         try {
             double d = Double.parseDouble(strNum);
         } catch (NumberFormatException | NullPointerException nfe) {
@@ -126,6 +149,13 @@ public class Crawler {
         }
         return true;
     }
+
+    boolean isEmpty(String input){
+
+        return input == null || input.trim().isEmpty();
+    }
+
+
 
 
 
