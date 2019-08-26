@@ -24,8 +24,9 @@ public class Startup implements ApplicationListener<ContextRefreshedEvent>
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         try {
-            System.out.println("onApplicationEvent".toUpperCase());
-            crawler.run("https://www.ad.co.il/nadlansale?view=table");
+          //  System.out.println("onApplicationEvent".toUpperCase());
+            //crawler.run("https://www.ad.co.il/nadlansale?view=table");
+            crawler.filterDataFields();
         }
         catch (IOException e) {
             e.printStackTrace();
